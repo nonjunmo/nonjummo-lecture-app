@@ -1,0 +1,47 @@
+<%- include("layout", { title, body: `
+  <section class="hero">
+    <p class="eyebrow">Vacation Offline Program</p>
+    <h1>논준모연구소 방학 오프라인 특강</h1>
+    <p>강의 일정과 신청 현황을 한눈에 확인하고, 계좌이체 입금 후 관리자의 입금확인을 통해 정원이 확정됩니다.</p>
+  </section>
+
+  <section class="content-grid">
+    <div class="panel">
+      <div class="section-heading">
+        <h2>텍스트 목록</h2>
+        <p>등록된 강의를 일정순으로 확인하세요.</p>
+      </div>
+      ${lectures.length === 0 ? `<p class="empty">현재 등록된 특강이 없습니다.</p>` : `
+        <div class="lecture-list">
+          ${lectures.map((lecture) => `
+            <a class="lecture-row" href="/lectures/${lecture.id}">
+              <span>
+                <strong>${lecture.title}</strong>
+                <small>${formatDateTime(lecture.schedule_at)} · ${lecture.location}</small>
+              </span>
+              <span class="status ${lecture.status.isOpen ? "open" : "closed"}">${lecture.status.label}</span>
+            </a>
+          `).join("")}
+        </div>
+      `}
+    </div>
+
+    <div class="panel">
+      <div class="section-heading">
+        <h2>달력</h2>
+        <p>첫 강의가 있는 월 기준으로 표시됩니다.</p>
+      </div>
+      ${calendarWeeks.length === 0 ? `<p class="empty">달력에 표시할 강의가 없습니다.</p>` : `
+        <div class="calendar">
+          ${["일", "월", "화", "수", "목", "금", "토"].map((day) => `<div class="calendar-head">${day}</div>`).join("")}
+          ${calendarWeeks.flat().map((cell) => `
+            <div class="calendar-cell ${cell.day ? "" : "muted"}">
+              <b>${cell.day || ""}</b>
+              ${cell.lectures.map((lecture) => `<a href="/lectures/${lecture.id}">${lecture.title}</a>`).join("")}
+            </div>
+          `).join("")}
+        </div>
+      `}
+    </div>
+  </section>
+` }) %>

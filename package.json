@@ -1,0 +1,20 @@
+{
+  "name": "nonjummo-lecture-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.9.1",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0"
+  }
+}

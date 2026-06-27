@@ -1,0 +1,68 @@
+<%- include("layout", { title, body: `
+  <section class="admin-title">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>관리자 페이지</h1>
+    </div>
+    <a class="primary-button inline" href="/admin/lectures/new">강의 등록</a>
+  </section>
+
+  <section class="panel">
+    <h2>강의 관리</h2>
+    ${lectures.length === 0 ? `<p class="empty">등록된 특강이 없습니다. 첫 강의를 등록해 주세요.</p>` : `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>강의</th><th>일정</th><th>장소</th><th>입금확인</th><th>상태</th><th>관리</th></tr></thead>
+          <tbody>
+            ${lectures.map((lecture) => `
+              <tr>
+                <td>${lecture.title}</td>
+                <td>${formatDateTime(lecture.schedule_at)}</td>
+                <td>${lecture.location}</td>
+                <td>${lecture.confirmed_count} / ${lecture.capacity}명</td>
+                <td><span class="status ${lecture.status.isOpen ? "open" : "closed"}">${lecture.status.label}</span></td>
+                <td class="actions">
+                  <a href="/admin/lectures/${lecture.id}/edit">수정</a>
+                  <form method="post" action="/admin/lectures/${lecture.id}/delete">
+                    <button type="submit" class="danger-button">삭제</button>
+                  </form>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `}
+  </section>
+
+  <section class="panel">
+    <h2>신청 내역</h2>
+    ${applications.length === 0 ? `<p class="empty">아직 접수된 신청이 없습니다.</p>` : `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>신청자</th><th>연락처</th><th>이메일</th><th>강의</th><th>입금자명</th><th>입금확인</th></tr></thead>
+          <tbody>
+            ${applications.map((application) => `
+              <tr>
+                <td>${application.name}</td>
+                <td>${application.phone}</td>
+                <td>${application.email}</td>
+                <td>${application.lecture_title}</td>
+                <td>${application.depositor_name}</td>
+                <td>
+                  <form method="post" action="/admin/applications/${application.id}/payment" class="check-form">
+                    <label class="check-label">
+                      <input type="checkbox" name="payment_confirmed" ${application.payment_confirmed ? "checked" : ""} onchange="this.form.submit()">
+                      입금확인
+                    </label>
+                    <noscript><button type="submit">저장</button></noscript>
+                  </form>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `}
+  </section>
+` }) %>

@@ -1,0 +1,16 @@
+<%- include("layout", { title, body: `
+  <a class="back-link" href="/admin">← 관리자 페이지</a>
+  <section class="panel narrow">
+    <h1>${title}</h1>
+    ${errors.length ? `<ul class="errors">${errors.map((error) => `<li>${error}</li>`).join("")}</ul>` : ""}
+    <form class="form" method="post" action="${action}">
+      <label>강의 제목<input name="title" value="${lecture.title || ""}" required></label>
+      <label>강의 내용<textarea name="description" rows="6" required>${lecture.description || ""}</textarea></label>
+      <label>강의 일정<input type="datetime-local" name="schedule_at" value="${lecture.schedule_at || ""}" required></label>
+      <label>장소<input name="location" value="${lecture.location || ""}" required></label>
+      <label>모집 정원<input type="number" min="1" name="capacity" value="${lecture.capacity || ""}" required></label>
+      <label>신청 마감일<input type="date" name="application_deadline" value="${lecture.application_deadline || ""}" required></label>
+      <button type="submit" class="primary-button">저장</button>
+    </form>
+  </section>
+` }) %>

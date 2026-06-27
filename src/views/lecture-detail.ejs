@@ -1,0 +1,38 @@
+<%- include("layout", { title, body: `
+  <a class="back-link" href="/">← 목록으로</a>
+  <section class="detail-header">
+    <span class="status ${lecture.status.isOpen ? "open" : "closed"}">${lecture.status.label}</span>
+    <h1>${lecture.title}</h1>
+    <p>${lecture.description}</p>
+  </section>
+
+  <section class="detail-grid">
+    <div class="panel">
+      <h2>강의 안내</h2>
+      <dl class="info-list">
+        <div><dt>일정</dt><dd>${formatDateTime(lecture.schedule_at)}</dd></div>
+        <div><dt>장소</dt><dd>${lecture.location}</dd></div>
+        <div><dt>정원</dt><dd>${lecture.capacity}명</dd></div>
+        <div><dt>현재 입금확인 완료 인원</dt><dd>${lecture.confirmed_count} / ${lecture.capacity}명</dd></div>
+        <div><dt>신청 마감일</dt><dd>${formatDate(lecture.application_deadline)}</dd></div>
+      </dl>
+    </div>
+
+    <div class="panel">
+      <h2>신청</h2>
+      ${errors.length ? `<ul class="errors">${errors.map((error) => `<li>${error}</li>`).join("")}</ul>` : ""}
+      ${lecture.status.isOpen ? `
+        <form class="form" method="post" action="/lectures/${lecture.id}/apply">
+          <label>이름<input name="name" value="${form.name || ""}" required></label>
+          <label>연락처<input name="phone" value="${form.phone || ""}" required></label>
+          <label>이메일<input type="email" name="email" value="${form.email || ""}" required></label>
+          <label>신청 강의<input value="${lecture.title}" disabled></label>
+          <label>입금자명<input name="depositor_name" value="${form.depositor_name || ""}" required></label>
+          <button type="submit" class="primary-button">신청하기</button>
+        </form>
+      ` : `
+        <p class="empty">정원 또는 신청 마감일 기준으로 마감된 강의입니다.</p>
+      `}
+    </div>
+  </section>
+` }) %>
