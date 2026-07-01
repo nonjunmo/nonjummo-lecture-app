@@ -271,6 +271,13 @@ function createApp(options = {}) {
     res.redirect("/admin");
   });
 
+  app.post("/admin/applications/:id/delete", requireAdmin, (req, res) => {
+    db.deleteApplication(req.params.id);
+    const requestedPage = Number.parseInt(req.query.page, 10);
+    const redirectPath = Number.isNaN(requestedPage) ? "/admin" : `/admin?page=${Math.max(requestedPage, 1)}`;
+    res.redirect(redirectPath);
+  });
+
   return { app, db };
 }
 

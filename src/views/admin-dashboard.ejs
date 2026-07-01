@@ -46,7 +46,7 @@
     ${applications.length === 0 ? `<p class="empty">아직 접수된 신청이 없습니다.</p>` : `
       <div class="table-wrap">
         <table>
-          <thead><tr><th>신청자</th><th>연락처</th><th>강의</th><th>입금확인</th><th>상세</th></tr></thead>
+          <thead><tr><th>신청자</th><th>연락처</th><th>강의</th><th>입금확인</th><th>상세</th><th>관리</th></tr></thead>
           <tbody>
             ${applications.map((application) => `
               <tr>
@@ -69,6 +69,11 @@
                       <div><dt>입금자명</dt><dd>${application.depositor_name}</dd></div>
                     </dl>
                   </details>
+                </td>
+                <td>
+                  <form method="post" action="/admin/applications/${application.id}/delete?page=${applicationsPage.current}" class="check-form" onsubmit="return confirm('정말 삭제하시겠습니까?')">
+                    <button type="submit" class="danger-button">삭제</button>
+                  </form>
                 </td>
               </tr>
             `).join("")}

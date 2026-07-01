@@ -92,6 +92,10 @@ function createDatabase(databasePath = path.join(process.cwd(), "data", "app.db"
     return Number(result.lastInsertRowid);
   }
 
+  function deleteApplication(id) {
+    return db.prepare("DELETE FROM applications WHERE id = ?").run(id);
+  }
+
   function listApplications() {
     return db.prepare(`
       SELECT applications.*, lectures.title AS lecture_title
@@ -112,6 +116,7 @@ function createDatabase(databasePath = path.join(process.cwd(), "data", "app.db"
   return {
     createApplication,
     createLecture,
+    deleteApplication,
     deleteLecture,
     getLectureWithCount,
     listApplications,

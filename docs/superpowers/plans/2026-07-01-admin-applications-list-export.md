@@ -77,3 +77,33 @@ Expected: all tests pass.
 
 Run: `git diff -- src/server.js src/views/admin-dashboard.ejs src/public/styles.css test/app.test.js docs/superpowers/plans/2026-07-01-admin-applications-list-export.md`
 Expected: diff only contains the requested admin application list/export changes.
+
+### Task 5: Application Deletion
+
+**Files:**
+- Modify: `src/db.js`
+- Modify: `src/server.js`
+- Modify: `src/views/admin-dashboard.ejs`
+- Test: `test/app.test.js`
+
+- [ ] **Step 1: Write the failing test**
+
+Add a test that logs in as admin, creates a confirmed application, posts to `/admin/applications/:id/delete?page=2`, and verifies that the application is removed, the response redirects back to `/admin?page=2`, and the public confirmed count decreases.
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `npm.cmd test`
+Expected: FAIL because the application delete route and database method do not exist yet.
+
+- [ ] **Step 3: Implement the database and route**
+
+Add `deleteApplication(id)` to `src/db.js` using `DELETE FROM applications WHERE id = ?`. Add `POST /admin/applications/:id/delete` to `src/server.js`, protected by `requireAdmin`, and redirect back to `/admin?page=<page>` when a page query is present.
+
+- [ ] **Step 4: Add the admin table button**
+
+Add a `삭제` column to the 신청 내역 table in `src/views/admin-dashboard.ejs`. Each row gets a POST form with `class="check-form"` and a `danger-button`, plus `onsubmit="return confirm('정말 삭제하시겠습니까?')"` for accidental-click protection.
+
+- [ ] **Step 5: Run test to verify it passes**
+
+Run: `npm.cmd test`
+Expected: PASS with all existing and new tests green.

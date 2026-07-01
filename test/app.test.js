@@ -259,3 +259,49 @@ test("admin can export all applications as html and excel-readable files", async
   assert.match(excelExport.text, /내보내기01/);
   assert.match(excelExport.text, /송금자01/);
 });
+
+test("admin can delete an application and confirmed count updates", async () => {
+  const { app, db } = makeTestApp();
+  const agent = request.agent(app);
+  await agent.post("/admin/login").type("form").send({ password: "secret" });
+
+  const lectureId = db.createLecture({
+    title: "삭제 테스트 특강",
+    description: "신청 내역 삭제를 확인합니다.",
+    schedule_at: "2026-07-22T14:00",
+    location: "논준모연구소",
+    capacity: 3,
+    application_deadline: "2026-07-15"
+  });
+  const applicationId = db.createApplication({
+    lecture_id: lectureId,
+    name: "삭제대상",
+    phone: "010-2222-3333",
+    email: "delete-me@example.com",
+    depositor_name: "삭제입금"
+  });
+  db.setPaymentConfirmed(applicationId, true);
+  for (let index = 1; index <= 10; index += 1) {
+    db.createApplication({
+      lecture_id: lectureId,
+      name: `유지대상${String(index).padStart(2, "0")}`,
+      phone: `010-4444-${String(index).padStart(4, "0")}`,
+      email: `keep${index}@example.com`,
+      depositor_name: `유지입금${String(index).padStart(2, "0")}`
+    });
+  }
+
+  const dashboard = await agent.get("/admin?page=2");
+  assert.equal(dashboard.status, 200);
+  assert.match(dashboard.text, new RegExp(`/admin/applications/${applicationId}/delete\\?page=2`));
+  assert.match(dashboard.text, /정말 삭제하시겠습니까\?/);
+
+  const remove = await agent.post(`/admin/applications/${applicationId}/delete?page=2`).type("form").send();
+  assert.equal(remove.status, 302);
+  assert.equal(remove.headers.location, "/admin?page=2");
+  assert.equal(db.listApplications().some((application) => application.id === applicationId), false);
+
+  const detail = await request(app).get(`/lectures/${lectureId}`);
+  assert.match(detail.text, /0 \/ 3명/);
+  assert.doesNotMatch(detail.text, /삭제대상/);
+});
