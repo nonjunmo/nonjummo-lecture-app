@@ -315,6 +315,7 @@ h2 {
 }
 
 .primary-button,
+.secondary-button,
 .danger-button {
   display: inline-flex;
   align-items: center;
@@ -330,6 +331,13 @@ h2 {
 .primary-button {
   background: var(--accent);
   color: #fff;
+}
+
+.secondary-button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
 }
 
 .primary-button.inline {
@@ -389,8 +397,74 @@ th {
   gap: 10px;
 }
 
+.export-actions,
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .actions form {
   margin: 0;
+}
+
+.checkbox-only {
+  justify-content: center;
+  width: 28px;
+}
+
+.application-details summary {
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.application-details dl {
+  display: grid;
+  gap: 8px;
+  min-width: 220px;
+  margin: 10px 0 0;
+}
+
+.application-details div {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 8px;
+}
+
+.application-details dt {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.application-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.pagination {
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.pagination a,
+.pagination span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pagination .disabled {
+  color: var(--muted);
+  background: var(--soft);
 }
 
 @media (max-width: 760px) {

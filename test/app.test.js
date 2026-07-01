@@ -173,3 +173,89 @@ test("admin payment confirmation updates public confirmed count both ways", asyn
   const unconfirmed = await request(app).get(`/lectures/${lectureId}`);
   assert.match(unconfirmed.text, /0 \/ 3명/);
 });
+
+test("admin applications list paginates and hides private fields behind details", async () => {
+  const { app, db } = makeTestApp();
+  const agent = request.agent(app);
+  await agent.post("/admin/login").type("form").send({ password: "secret" });
+
+  const lectureId = db.createLecture({
+    title: "페이지 테스트 특강",
+    description: "신청 내역 페이지네이션을 확인합니다.",
+    schedule_at: "2026-07-22T14:00",
+    location: "논준모연구소",
+    capacity: 20,
+    application_deadline: "2026-07-15"
+  });
+
+  for (let index = 1; index <= 12; index += 1) {
+    db.createApplication({
+      lecture_id: lectureId,
+      name: `신청자${String(index).padStart(2, "0")}`,
+      phone: `010-0000-${String(index).padStart(4, "0")}`,
+      email: `applicant${index}@example.com`,
+      depositor_name: `입금자${String(index).padStart(2, "0")}`
+    });
+  }
+
+  const firstPage = await agent.get("/admin");
+  assert.equal(firstPage.status, 200);
+  assert.match(firstPage.text, /1 \/ 2페이지/);
+  assert.match(firstPage.text, /신청자12/);
+  assert.match(firstPage.text, /신청자03/);
+  assert.doesNotMatch(firstPage.text, /신청자02<\/td>/);
+  assert.doesNotMatch(firstPage.text, /<th>이메일<\/th>/);
+  assert.doesNotMatch(firstPage.text, /<th>입금자명<\/th>/);
+  assert.match(firstPage.text, /<summary>더보기<\/summary>/);
+  assert.match(firstPage.text, /applicant12@example\.com/);
+  assert.match(firstPage.text, /입금자12/);
+  assert.doesNotMatch(firstPage.text, /<input type="checkbox"[^>]*>\s*입금확인/);
+
+  const secondPage = await agent.get("/admin?page=2");
+  assert.equal(secondPage.status, 200);
+  assert.match(secondPage.text, /2 \/ 2페이지/);
+  assert.match(secondPage.text, /신청자02/);
+  assert.match(secondPage.text, /신청자01/);
+  assert.doesNotMatch(secondPage.text, /신청자03<\/td>/);
+});
+
+test("admin can export all applications as html and excel-readable files", async () => {
+  const { app, db } = makeTestApp();
+  const agent = request.agent(app);
+  await agent.post("/admin/login").type("form").send({ password: "secret" });
+
+  const lectureId = db.createLecture({
+    title: "내보내기 테스트 특강",
+    description: "신청 내역 전체 내보내기를 확인합니다.",
+    schedule_at: "2026-07-22T14:00",
+    location: "논준모연구소",
+    capacity: 20,
+    application_deadline: "2026-07-15"
+  });
+
+  for (let index = 1; index <= 12; index += 1) {
+    db.createApplication({
+      lecture_id: lectureId,
+      name: `내보내기${String(index).padStart(2, "0")}`,
+      phone: `010-1111-${String(index).padStart(4, "0")}`,
+      email: `export${index}@example.com`,
+      depositor_name: `송금자${String(index).padStart(2, "0")}`
+    });
+  }
+
+  const htmlExport = await agent.get("/admin/applications/export.html");
+  assert.equal(htmlExport.status, 200);
+  assert.match(htmlExport.headers["content-type"], /text\/html/);
+  assert.match(htmlExport.text, /신청 내역/);
+  assert.match(htmlExport.text, /내보내기12/);
+  assert.match(htmlExport.text, /내보내기01/);
+  assert.match(htmlExport.text, /export12@example\.com/);
+
+  const excelExport = await agent.get("/admin/applications/export.xls");
+  assert.equal(excelExport.status, 200);
+  assert.match(excelExport.headers["content-type"], /application\/vnd\.ms-excel/);
+  assert.match(excelExport.headers["content-disposition"], /attachment; filename="applications\.xls"/);
+  assert.match(excelExport.text, /내보내기12/);
+  assert.match(excelExport.text, /내보내기01/);
+  assert.match(excelExport.text, /송금자01/);
+});

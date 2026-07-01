@@ -5,6 +5,57 @@ const { createDatabase } = require("./db");
 const { validateApplicationInput, validateLectureInput } = require("./validators");
 const { buildCalendarWeeks, formatDate, formatDateTime, getLectureStatus } = require("./view-models");
 
+const APPLICATIONS_PER_PAGE = 10;
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function renderApplicationsExport(applications) {
+  const rows = applications.map((application) => `
+      <tr>
+        <td>${escapeHtml(application.name)}</td>
+        <td>${escapeHtml(application.phone)}</td>
+        <td>${escapeHtml(application.email)}</td>
+        <td>${escapeHtml(application.lecture_title)}</td>
+        <td>${escapeHtml(application.depositor_name)}</td>
+        <td>${application.payment_confirmed ? "확인" : "미확인"}</td>
+        <td>${escapeHtml(formatDateTime(application.created_at))}</td>
+      </tr>`).join("");
+
+  return `<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <title>신청 내역</title>
+  </head>
+  <body>
+    <h1>신청 내역</h1>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>신청자</th>
+          <th>연락처</th>
+          <th>이메일</th>
+          <th>강의</th>
+          <th>입금자명</th>
+          <th>입금확인</th>
+          <th>신청일</th>
+        </tr>
+      </thead>
+      <tbody>
+${rows}
+      </tbody>
+    </table>
+  </body>
+</html>`;
+}
+
 function createApp(options = {}) {
   const app = express();
   const db = options.db || createDatabase(options.databasePath || process.env.DATABASE_PATH);
@@ -125,11 +176,36 @@ function createApp(options = {}) {
 
   app.get("/admin", requireAdmin, (req, res) => {
     const lectures = db.listLecturesWithCounts().map(decorateLecture);
+    const allApplications = db.listApplications();
+    const totalPages = Math.max(1, Math.ceil(allApplications.length / APPLICATIONS_PER_PAGE));
+    const requestedPage = Number.parseInt(req.query.page, 10);
+    const currentPage = Math.min(Math.max(Number.isNaN(requestedPage) ? 1 : requestedPage, 1), totalPages);
+    const pageStart = (currentPage - 1) * APPLICATIONS_PER_PAGE;
+
     res.render("admin-dashboard", {
       title: "관리자 페이지",
       lectures,
-      applications: db.listApplications()
+      applications: allApplications.slice(pageStart, pageStart + APPLICATIONS_PER_PAGE),
+      applicationsPage: {
+        current: currentPage,
+        hasNext: currentPage < totalPages,
+        hasPrevious: currentPage > 1,
+        perPage: APPLICATIONS_PER_PAGE,
+        total: allApplications.length,
+        totalPages
+      }
     });
+  });
+
+  app.get("/admin/applications/export.html", requireAdmin, (req, res) => {
+    res.type("html").send(renderApplicationsExport(db.listApplications()));
+  });
+
+  app.get("/admin/applications/export.xls", requireAdmin, (req, res) => {
+    res
+      .type("application/vnd.ms-excel; charset=utf-8")
+      .set("Content-Disposition", 'attachment; filename="applications.xls"')
+      .send(renderApplicationsExport(db.listApplications()));
   });
 
   app.get("/admin/lectures/new", requireAdmin, (req, res) => {

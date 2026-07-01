@@ -36,33 +36,52 @@
   </section>
 
   <section class="panel">
-    <h2>신청 내역</h2>
+    <div class="section-heading">
+      <h2>신청 내역</h2>
+      <div class="export-actions" aria-label="신청 내역 내보내기">
+        <a class="secondary-button" href="/admin/applications/export.html">HTML</a>
+        <a class="secondary-button" href="/admin/applications/export.xls">Excel</a>
+      </div>
+    </div>
     ${applications.length === 0 ? `<p class="empty">아직 접수된 신청이 없습니다.</p>` : `
       <div class="table-wrap">
         <table>
-          <thead><tr><th>신청자</th><th>연락처</th><th>이메일</th><th>강의</th><th>입금자명</th><th>입금확인</th></tr></thead>
+          <thead><tr><th>신청자</th><th>연락처</th><th>강의</th><th>입금확인</th><th>상세</th></tr></thead>
           <tbody>
             ${applications.map((application) => `
               <tr>
                 <td>${application.name}</td>
                 <td>${application.phone}</td>
-                <td>${application.email}</td>
                 <td>${application.lecture_title}</td>
-                <td>${application.depositor_name}</td>
                 <td>
                   <form method="post" action="/admin/applications/${application.id}/payment" class="check-form">
-                    <label class="check-label">
-                      <input type="checkbox" name="payment_confirmed" ${application.payment_confirmed ? "checked" : ""} onchange="this.form.submit()">
-                      입금확인
+                    <label class="check-label checkbox-only">
+                      <input type="checkbox" name="payment_confirmed" aria-label="${application.name} 입금확인" ${application.payment_confirmed ? "checked" : ""} onchange="this.form.submit()">
                     </label>
                     <noscript><button type="submit">저장</button></noscript>
                   </form>
+                </td>
+                <td>
+                  <details class="application-details">
+                    <summary>더보기</summary>
+                    <dl>
+                      <div><dt>이메일</dt><dd>${application.email}</dd></div>
+                      <div><dt>입금자명</dt><dd>${application.depositor_name}</dd></div>
+                    </dl>
+                  </details>
                 </td>
               </tr>
             `).join("")}
           </tbody>
         </table>
       </div>
+      ${applicationsPage.totalPages > 1 ? `
+        <nav class="pagination" aria-label="신청 내역 페이지">
+          ${applicationsPage.hasPrevious ? `<a href="/admin?page=${applicationsPage.current - 1}">이전</a>` : `<span class="disabled">이전</span>`}
+          <span>${applicationsPage.current} / ${applicationsPage.totalPages}페이지</span>
+          ${applicationsPage.hasNext ? `<a href="/admin?page=${applicationsPage.current + 1}">다음</a>` : `<span class="disabled">다음</span>`}
+        </nav>
+      ` : ``}
     `}
   </section>
 ` }) %>
